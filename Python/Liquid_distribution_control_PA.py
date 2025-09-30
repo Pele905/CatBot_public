@@ -34,7 +34,7 @@ def convert_ml_to_steps(amount_ml, pump):
     pump_data_calibration = {'Pump 1' : 302, "Pump 2" : 303, 
                          "Pump 3" : 301, "Pump 4" : 302, 
                          "Pump 5": 302, "Pump 6": 303,
-                         "Pump 7": 302 # Pump 3 needs twice as many steps 
+                         "Pump 7": 302 
     }
 
     return int(pump_data_calibration[pump] * amount_ml)
@@ -338,4 +338,5 @@ def clean_testing_chamber():
         this function should call on function for sending cleaning liquid into the testing chamber
     '''
     return 
+
 

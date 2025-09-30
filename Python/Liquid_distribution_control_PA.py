@@ -53,8 +53,8 @@ def set_liquids_syringe(command_dict,
         time.sleep(20)
 
     for pumping_liquid in command_dict.keys():
-        amount = command_dict[pumping_liquid]["amount ml"] # Find the amount we need to recharge
-        pump = command_dict[pumping_liquid]["Pump"] # Find the corresponding pump
+        amount = command_dict[pumping_liquid]["amount ml"] 
+        pump = command_dict[pumping_liquid]["Pump"] 
         pump_str = "Pump " + str(pump)
         amount_step = str(convert_ml_to_steps(float(amount), pump_str))
         cmd_i = f"SyringePumps {pump} {amount_step} backward refill "
@@ -338,5 +338,6 @@ def clean_testing_chamber():
         this function should call on function for sending cleaning liquid into the testing chamber
     '''
     return 
+
 
 

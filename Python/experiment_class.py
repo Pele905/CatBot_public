@@ -50,8 +50,9 @@ def try_to_make_folder(path):
 
 class Experiment:
     def __init__(self, 
-                 experimental_params = {}):
-
+                 experimental_params = None):
+        if experimental_params is None:
+            experimental_params = {}
         self.experimental_params = experimental_params
         if experimental_params != {}:
             self.dep_current_density_mA_cm2 = experimental_params["Deposition current density [mA/cm2]"]

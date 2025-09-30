@@ -203,14 +203,14 @@ def pump_liquids_syringe(command_dict,
             evacuate_set = True
             print("We suck liquid")
 
-            liquid_added = convert_ml_to_steps(int(extra_amount),pump_str) # We add liquid till we reach 50 
+            liquid_added = convert_ml_to_steps(int(extra_amount),pump_str) # We add liquid till we reach extra_amount 
             cmd_i = f"SyringePumps {pump} {liquid_added} backward refill "
 
             serialcomm.write(cmd_i.encode())
             confirmation = ""
             while confirmation != "SyringePump movement comp":
                 confirmation = serialcomm.readline().decode().strip()
-                 # We simply fill liquid until it reaches 50 ml 
+                 # We simply fill liquid until it reaches extra_amount ml 
 
                 time.sleep(2)
             liquid_data_hist[pump_str].append(extra_amount + liquid_data_hist[pump_str][-1] - flush_volume)
@@ -223,7 +223,7 @@ def pump_liquids_syringe(command_dict,
             confirmation = ""
             while confirmation != "SyringePump movement comp":
                 confirmation = serialcomm.readline().decode().strip()
-                 # We simply fill liquid until it reaches 50 ml 
+                 
 
                 
             # Now we have flushed the tubes, and we need to remove the excess liquids
@@ -338,6 +338,7 @@ def clean_testing_chamber():
         this function should call on function for sending cleaning liquid into the testing chamber
     '''
     return 
+
 
 
 

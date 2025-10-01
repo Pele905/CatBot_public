@@ -24,7 +24,7 @@ from experiment_class import *
 # We need to dynamically know status of syringe pumps
 
 class CatBot:
-    def __init__(self, serialcomm_liquid = None, serialcomm_temp = None):
+    def __init__(self, serialcomm_liquid = None, serialcomm_temp = None, pumping_liquids = None):
 
         self.reload = False 
         self.app = QApplication([])
@@ -44,15 +44,18 @@ class CatBot:
                 print("Failed to connect to all COM ports")
                 print(e)
 
-        self.pumping_liquids = {"NiSO4": {"Pump": 1, "amount ml" : 10.5}, 
-                                "FeSO4": {"Pump": 2, "amount ml" : 0},
-                                "MnSO4": {"Pump": 3, "amount ml" : 0},
-                                "CoSO4": {"Pump": 4, "amount ml" : 0},
-                                "HeSO4": {"Pump": 5, "amount ml" : 0},
-                                "HgSO4": {"Pump": 6, "amount ml" : 0},
-                                "NiCl": {"Pump": 7, "amount ml" : 0},
-         }
-        
+        if pumping_liquids == None:
+            # Set the default pumping liquids to the following
+            self.pumping_liquids = {"NiSO4": {"Pump": 1, "amount ml" : 10.5}, 
+                                    "FeSO4": {"Pump": 2, "amount ml" : 0},
+                                    "MnSO4": {"Pump": 3, "amount ml" : 0},
+                                    "CoSO4": {"Pump": 4, "amount ml" : 0},
+                                    "HeSO4": {"Pump": 5, "amount ml" : 0},
+                                    "HgSO4": {"Pump": 6, "amount ml" : 0},
+                                    "NiCl": {"Pump": 7, "amount ml" : 0},
+             }
+        else:
+            self.pumping_liquids = pumping_liquids
         # The stock solution inside the different syringe pumps 
         self.stock_solutions = {"H2SO4": {"Pump": 4, "Concentration [mol/L]" : 1}, 
                                 'NiSO4' : {"Pump": 6, "Concentration [mol/L]" : 0.4},
@@ -90,9 +93,6 @@ class CatBot:
         self.logfile = "Logfile_temp_1.txt"
         self.syringe_pump_status = []
 
-    def get_experiment_from_ML():
-        # Call, and get library from ML 
-        return 
     def set_temperature_dep_chamber(self, temperature, filename, convergence_setter = "Temp Electrolyte"):
         # Plot the data as well
         if hasattr(self, 'dep_thread') and self.dep_thread.is_alive():
@@ -132,6 +132,10 @@ class CatBot:
         #self.convergence_event_dep.wait()
         
     def set_temperature_both_chambers(self, filename, temperature_KOH = 30, temperature_dep_electrolyte = 30):
+        """
+        Sets the temperatures for both the deposition and testing chambers.  
+        Also starts convergence threads to ensure convergence during experimentation
+        """
         if hasattr(self, 'temp_thread') and self.temp_thread.is_alive():
             self.stop_event_temp_thread.set()
             self.temp_thread.join()
@@ -262,13 +266,7 @@ class CatBot:
                                          reference_electrode_shift = -1128, 
                                          pumped_volumes = {""}):
         '''
-            This function here takes as input 
-            1) Temperature
-            2) Syringe_pump_concentrations
-            3) Deposition time
-            4) Deposition dict
-            These are then turned into a dictionary, with a specified keyword 
-            If append is true, we append the existing data onto an already existing dictionary
+            This function here takes as input the experimental parameters from an experiment, and saves these into an .json
         '''
         retained_electrolyte_str = "True" if retained_electrolyte == True else "False"
         current_time = datetime.now()

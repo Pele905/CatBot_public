@@ -870,15 +870,17 @@ class CatBot:
                                nickel_calibration_exp = None
                        ):
         '''
-            Function that runs an experiment, setting the temperature of the testing and deposition chambers, as well
-            as pumping liquids to syringes 
+            Runs a full experiment sequence in one go. 
 
-            Also sets the deposition current density
+            This includes:
+            1. Electrode cleaning (HCl pretreatment and cleaning in water)
+            2. Electrodeposition (setting deposition chamber temperature, pumping deposition solution, and applying current density)
+            3. Electrochemical testing (setting testing chamber temperature, filling with KOH, and running the defined testing protocol)
         '''
 
+
         calibrate_ref = False
-        # Extract all parameters from 
-        # Load all the parameters from an experiment
+        # Extract all parameters from the experimental params
         if experiment.experimental_params != {}:
             temp_deposition = experiment.dep_temperature
             temp_testing = experiment.testing_temperature
@@ -929,7 +931,7 @@ class CatBot:
             
             #experiment_subfolder_path = experiment.make_folder_for_subexperiment(return_folder = True)
             
-           # If we specify the output folders, the data is stored 
+           # If we specify the output folder, the data is instead stored under output data folder
             if output_data_folder != "":
                 num_experiments = len(os.listdir(output_data_folder))
                 
@@ -956,7 +958,6 @@ class CatBot:
                 experiment.filename_depositon_data = filename_deposition_data
                 experiment.filename_testing_data = filename_testing_data
 
-                
 
             else:
                 filename_testing_data = os.path.join(experiment_subfolder_path,
@@ -973,6 +974,8 @@ class CatBot:
                 parameter_dict_filename = experiment.get_parameter_dict_name()
                 parameter_dict_abs_path = os.path.join(experiment_subfolder_path, parameter_dict_filename)
             try:
+                # Write all the experimental parameters to a dictionary. 
+                # The parameters are defined in the Experiment()
                 self.write_experimental_params_to_dict(temperature_deposition=temp_deposition,
                                         temperature_testing=temp_testing,
                                         KOH_concentration=KOH_concentration,
@@ -1017,15 +1020,16 @@ class CatBot:
             time.sleep(1)
             
             print(self.pumping_liquids)
+            # Pump the deposition solution into the deposition chamber
             self.pump_liquids(pump_data_dict=self.pumping_liquids, 
                             chamber="deposition")
             print(self.pump_liquids)
             time.sleep(1)
-            # We need a way to properly
+
             print(self.pumping_liquids)
-            # Writes all the experimental parameters to a dictionary at a specified file location
             
             time.sleep(1)
+            # Set the temperature in deposition and testing chamber
             self.set_temperature_both_chambers(filename=filename_temperature_data, 
                                 temperature_KOH=temp_testing,
                                 temperature_dep_electrolyte=temp_deposition)
@@ -1042,10 +1046,12 @@ class CatBot:
                 self.roll_wire_HCl_to_water(update_parameter_dict = True, 
                                     parameter_dict_path=parameter_dict_abs_path)
             time.sleep(1)
-            # We do room temperature for now 
+            # Ensure that we actually do deposition. 
+            # If we dont, then we are investigating a bare nickel wire
             if deposition_current_density_mA != 0 and deposition_time != 0:
                 start_time = time.time()
                 convergence_time = 0
+                # Waiting for convergence in deposition chamber before rolling wire into the chamber
                 while not self.convergence_event_dep.is_set():
                     print("Waiting for temperature to converge deposition chamber")
                     convergence_time = time.time() - start_time
@@ -1060,10 +1066,10 @@ class CatBot:
                     self.roll_wire_water_deposition(through=roll_while_depositing, update_parameter_dict = True, 
                                                     parameter_dict_path=parameter_dict_abs_path)
                 time.sleep(1)
-                self.initialize_potentiostat_deposition()
-                # While not converged:
                 
-                self.initialize_potentiostat_deposition()
+                self.initialize_potentiostat_deposition() # Connect the potentiostat to the wire (working electrode) and the counter electrode
+
+                # Execute the deposition experiment
                 self.run_deposition_experiment(deposition_current_density=deposition_current_density_mA, 
                                             deposition_time=deposition_time, 
                                             filename=filename_deposition_data, 
@@ -1072,10 +1078,11 @@ class CatBot:
                                             COM_port="COM9")
 
                 
-                self.pump_liquid_deposition_waste() # This worked
+                self.pump_liquid_deposition_waste() # Pump the deposition liquid into the waste bin
                 time.sleep(1)
-                self.uninitialize_potentiostat_deposition() # This also worked 
+                self.uninitialize_potentiostat_deposition() # Disconnect the potentiostat to the wire (working electrode) and the counter electrode 
                 time.sleep(1)
+                # Clean the deposition chamber with water
                 self.clean_deposition_chamber(waiting_time=cleaning_waiting_time_deposition_chamber_s, 
                                               cleaning_cycles=cleaning_cycles_deposition_chamber)
             else:
@@ -1086,6 +1093,7 @@ class CatBot:
             
             convergence_time = 0
             start_time = time.time()
+            # Wait for temperature to converge in testing chamber
             while not self.convergence_event_test.is_set():
                 print("Waiting for temperature to converge testing")
                 convergence_time = time.time() - start_time
@@ -1095,7 +1103,7 @@ class CatBot:
             
             self.convergence_thread_test.join()
             time.sleep(1)
-            # Here run a calibration scan for the bare nickel wire 
+            # Here run a calibration scan for the bare nickel wire if we chose to give it 
             if nickel_calibration_exp != None:
                 roll_wire_N_steps(serialcomm=self.serialcomm_liquid, 
                                   N_steps=10000) # Roll fresh piece of Nickel wire into testing chamber
@@ -1109,30 +1117,33 @@ class CatBot:
                 calibrate_ref = True
                 time.sleep(20)
             
+            # If we dont run a calibration experiment with a bare nickel wire piece, roll the coated electrode into the testing chamber
             if keep_wire_stationary == False:
                 self.roll_wire_deposition_testing(through=roll_while_depositing, update_parameter_dict = True, 
                                        parameter_dict_path=parameter_dict_abs_path, calibrate_ref=calibrate_ref)
 
             time.sleep(1)
 
-            self.initialize_potentiostat_testing() # Connect the potentiostat using the servo motor
+            self.initialize_potentiostat_testing() # Connect the potentiostat to the wire (working electrode), the counter electrode and the reference electrode in the testing chamber
             
             time.sleep(5)
+            # Execute the defined electrochemical experiment
             run_specified_experiment(filename=filename_testing_data, 
                                     app=self.app, 
                                     experiment=testing_protocol, squidstat_name="Plus2254", 
-                                    COM_port="COM9")
+                                    COM_port="COM9") # Here please change the COM-port to match your own computer, and also ensure that the squidstat is of the same type, with the same name
 
             time.sleep(1)
-
+            
+            # Clean the testing chamber
             if maintain_KOH_after_testing == False:
                 self.pump_liquid_testing_waste()
                 time.sleep(1)
                 self.clean_testing_chamber(waiting_time = cleaning_waiting_time_testing_chamber_s,
                                         cleaning_cycles=testing_chamber_cleaning_cycles)
             
-            self.uninitialize_potentiostat_testing()
-            experiment.update_experiment_count()
+            self.uninitialize_potentiostat_testing() # Disconnect the potentiostat to the wire (working electrode), the counter electrode and the reference electrode in the testing chamber
+            experiment.update_experiment_count() # Update the experiment count (+1)
             
     
 

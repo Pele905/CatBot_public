@@ -1,513 +1,75 @@
 import sys
 import os
 import threading 
-# Add the parent directory to the system path
+# Add the parent directory to the system path as this is running in a subdirectory
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 analysis_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', "Live_data_analysis"))
 sys.path.append(analysis_path)
-# Now you can import from the parent directory
-from Catbot_control_master import *
+from Catbot_control_master import CatBot
 from utils import *
-from experimental_protocols import *
-from experiment_class import *
-from Live_data_analysis import live_data_analysis_after_testing as data_analysis
+from experimental_protocols import coated_wire_testing_protocol_1
+from experiment_class import Experiment
 
+
+# Initialize the robot, 
+# Important, when initializing robot, the serialcomms for temperature and liquid needs to be changed according to the users computer
 Robot_test = CatBot(serialcomm_temp='COM4',
-                    serialcomm_liquid='COM6') # Initialize a catbot with two different serialcomms 
+                    serialcomm_liquid='COM6') 
 
+# Wait top ensure robot is connected properly
 time.sleep(15)
-# Testing experiment that you want to run
-EC_data_path = "C:\\Users\\Catbot-adm\\Desktop\\CatBot\\Python\\Electrochemical_data\\Electrochemical_data_second_phase\\Data_dicts"
 
-ECSA_dict_path = os.path.join(EC_data_path, "CV_ECSA_dict_all_data.json")
-CP_dict_name_path = os.path.join(EC_data_path, "CP_datadict_all_data.json")
-CV_cycling_stability_dict_path = os.path.join(EC_data_path, "CV_cycling_stability_dict_all_data.json")
-EIS_dict_path = os.path.join(EC_data_path, "EIS_dict_all_data.json")
-LSV_dict_path = os.path.join(EC_data_path, "LSV_dict_all_data.json")
-
+# Define the output data folder, where the data will be stored
+output_data_folder = r"C:\Users\Catbot-adm\Desktop\EC_data_CatBot\Ni_Mo_optimization"
+# Define both a testing experiment, and give the testing experiment a name
+# The experiment is of type AisExperiment, the name ins a string
 testing_experiment, testing_protocol_name = coated_wire_testing_protocol_1()
 
+# Define the experiment
+experiment_example_1 = Experiment(
+    experimental_params={
+        "Temperature_deposition [C]": 50, # Deposition temperature (°C, float)
+        "Temperature_testing [C]": 80, # Testing chamber temperature (°C, float)
+        "Testing liquid KOH [w %]": 30, # KOH concentration in testing solution (wt %, float)
+        "Deposition composition": {"NiSO4": 0.1275}, # Deposition bath composition [M] (dict: species → float)
+        "Roll while depositing": True, # Roll wire during deposition (bool)
+        "Testing protocol": {"testing protocol name": testing_protocol_name,"protocol": testing_experiment}, # Testing protocol details (dict: name + procedure)
+        "Deposition time [s]": 129, # Deposition time (s, float)
+        "Deposition current density [mA/cm2]": 70.99, # Current density during deposition (mA/cm², float)
+        "Wire type": "Ni 99.8 %", # Wire material and purity (string)
+        "Filename testing data": "", # File to save testing data (string, optional)
+        "Filename deposition data": "", # File to save deposition data (string, optional)
+        "Filename temperature data": "", # File to save temperature data (string, optional)
+        "Filename folder": "", # Custom output folder (string, optional)
+        "General comments": "No comment", # Free-text experiment notes (string)
+        "Clean after testing": True, # Flush testing chamber with water after experiment (bool)
+        "Maintain KOH after testing": False, # Keep/reuse KOH solution after test (bool)
+        "HCl dipping time [s]": 900, # Wire pretreatment in HCl (s, float)
+        "HCl cleaning concentration [mol / L]": 3, # HCl cleaning solution concentration (mol/L, float)
+        "KOH filling volume [ml]": 10.9, # KOH volume used in testing chamber (mL, float)
+        "Deposition filling volume [ml]": 15, # Deposition solution volume (mL, float)
+        "Experiment name": "", # Optional experiment name (string)
+        "KOH batch": "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", # Batch ID / preparation details for KOH (string)
+        "Repeat experiment n cycles": 1, # Number of repetitions of the experiment (int)
+        "Cleaning waiting time testing [s]": 60, # Dwell time for cleaning solution in testing chamber (s, float)
+        "Cleaning waiting time deposition [s]": 60, # Dwell time for cleaning solution in deposition chamber (s, float)
+        "Cleaning cycles testing chamber": 2, # Number of cleaning cycles for testing chamber (int)
+        "Cleaning cycles deposition chamber": 2, # Number of cleaning cycles for deposition chamber (int)
+        "Deposition batch": "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24" # Stock solution used for deposition (string)
+    }
+)
 
-
-
-
-experiment_ML_set_4_nr_1 = Experiment(experimental_params={"Temperature_deposition [C]" : 79, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.1275},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 129, 
-                "Deposition current density [mA/cm2]" : 70.99, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-
-
-experiment_ML_set_4_nr_2 = Experiment(experimental_params={"Temperature_deposition [C]" : 79, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.2902},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 96.5, 
-                "Deposition current density [mA/cm2]" : 62.6, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-
-
-experiment_ML_set_4_nr_3 = Experiment(experimental_params={"Temperature_deposition [C]" : 28.4, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.2387},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 162.8, 
-                "Deposition current density [mA/cm2]" : 66.2, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-
-######################################################################################################################################################
-experiment_ML_set_4_nr_4 = Experiment(experimental_params={"Temperature_deposition [C]" : 79, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.4},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 201.7, 
-                "Deposition current density [mA/cm2]" : 96.3, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-
-
-
-experiment_ML_set_4_nr_5 = Experiment(experimental_params={"Temperature_deposition [C]" : 28.4, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.4},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 173.4, 
-                "Deposition current density [mA/cm2]" : 10.1, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-
-
-experiment_ML_set_4_nr_6 = Experiment(experimental_params={"Temperature_deposition [C]" : 28.4, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.3629},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 312, 
-                "Deposition current density [mA/cm2]" : 78.8, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-    
-
-
-experiment_ML_set_4_nr_7 = Experiment(experimental_params={"Temperature_deposition [C]" : 28.4, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.32},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 40, 
-                "Deposition current density [mA/cm2]" : 76.2, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-
-
-experiment_ML_set_4_nr_8 = Experiment(experimental_params={"Temperature_deposition [C]" : 55.9, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.0555},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 95.9, 
-                "Deposition current density [mA/cm2]" : 51.5, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-
-
-experiment_ML_set_4_nr_9 = Experiment(experimental_params={"Temperature_deposition [C]" : 28.4, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.0823},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 156.6, 
-                "Deposition current density [mA/cm2]" : 9.7, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-
-
-experiment_ML_set_4_nr_10 = Experiment(experimental_params={"Temperature_deposition [C]" : 39.6, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.0},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 312, 
-                "Deposition current density [mA/cm2]" : 4, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-
-################################
-experiment_ML_set_4_nr_11 = Experiment(experimental_params={"Temperature_deposition [C]" : 46, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.308},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 155, 
-                "Deposition current density [mA/cm2]" : 95, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-
-
-
-experiment_ML_set_4_nr_12 = Experiment(experimental_params={"Temperature_deposition [C]" : 74, 
-              "Temperature_testing [C]" : 80,
-              "Testing liquid KOH [w %]": 30, 
-                "Deposition composition" : {"NiSO4": 0.028},
-                "Roll while depositing" : True, 
-                "Testing protocol" : {"testing protocol name" : testing_protocol_name, "protocol" : testing_experiment},
-                "Deposition time [s]" : 71, 
-                "Deposition current density [mA/cm2]" : 93, 
-                "Wire type" : "Ni 99.8 %",
-                "Filename testing data" : "",
-                "Filename deposition data" : "", 
-                "Filename temperature data" : "",
-                "Filename folder" : "", 
-                "General comments" : "No comment",
-                "Clean after testing" : True, 
-                "Maintain KOH after testing" : False, # This is to do retained electrolyte experiments 
-                "Optimize using ML" : False, 
-                "HCl dipping time [s]" : 900,
-                "HCl cleaning concentration [mol / L]" : 3, 
-                "KOH filling volume [ml]" : 10.9,
-                "Deposition filling volume [ml]" : 15,
-                "Experiment name" : "", 
-                "KOH batch" : "Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %", 
-                "Repeat experiment n cycles" : 1, # How many times you want to repeat the experiment 
-                "Cleaning waiting time testing [s]" : 60, 
-                "Cleaning waiting time deposition [s]" : 60, 
-                "Cleaning cycles testing chamber" : 2, 
-                "Cleaning cycles deposition chamber" : 2, 
-                "Deposition batch" : "Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24", 
-                "HCl concentration [mol / L]" : 3})
-
-#Robot_test.run_complete_experiment(experiment=experiment_uncertainty_3, 
-#                                empty_after_deposition=True, 
-#                                keep_wire_stationary=False, 
-#                                evacuate_chambers_before_starting=True)
-
-
-time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_1, 
+# Execute the pre-defined experiment
+Robot_test.run_complete_experiment(experiment=experiment_example_1, 
                                 empty_after_deposition=True, 
                                 keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
-time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_2, 
-                                empty_after_deposition=True, 
-                                keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
-time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_3, 
-                                empty_after_deposition=True, 
-                                keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
+                                evacuate_chambers_before_starting=True, 
+                                output_data_folder=output_data_folder)
 
 
 time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_4, 
-                                empty_after_deposition=True, 
-                                keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
-
-
-
-time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_5, 
-                                empty_after_deposition=True, 
-                                keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
-
-
-time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_6, 
-                                empty_after_deposition=True, 
-                                keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
-
-time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_7, 
-                                empty_after_deposition=True, 
-                                keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
-
-
-time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_8, 
-                                empty_after_deposition=True, 
-                                keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
-
-
-time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_9, 
-                                empty_after_deposition=True, 
-                                keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
-
-
-time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_10, 
-                                empty_after_deposition=True, 
-                                keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
-
-
-time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_11, 
-                                empty_after_deposition=True, 
-                                keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
-
-
-time.sleep(5)
-Robot_test.run_complete_experiment(experiment=experiment_ML_set_4_nr_12, 
-                                empty_after_deposition=True, 
-                                keep_wire_stationary=False, 
-                                evacuate_chambers_before_starting=True)
-
-
-
-
-Robot_test.pump_KOH_into_testing_chamber(amount_ml=6)
-time.sleep(5)
+# Set the temperature low after finishing an experiment for safety 
 Robot_test.set_temperature_both_chambers(filename="bs.json",
                                          temperature_dep_electrolyte=30,
                                            temperature_KOH=30)

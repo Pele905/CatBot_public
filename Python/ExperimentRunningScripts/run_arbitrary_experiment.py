@@ -76,7 +76,6 @@ Robot_test.run_complete_experiment(experiment=experiment_example_1,
                                 evacuate_chambers_before_starting=True, 
                                 output_data_folder=output_data_folder)
 
-
 time.sleep(5)
 # Set the temperature low after finishing an experiment for safety 
 Robot_test.set_temperature_both_chambers(filename="bs.json",

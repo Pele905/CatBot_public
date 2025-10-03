@@ -7,38 +7,58 @@ This project was developed and tested with the following versions:
 - **Python:** 3.10
 - **Arduino IDE:** 2.3.2
 
-Startup guide:
 
-The code for controlling Robot consists of the following parts:
-  1) A roll to roll system, controlled through Nickel_wire_control_PA.py
-  2) A liquid distribution system containing Liquid_distribution_control_PA.py
-  3) A temperature control system controlled through temperature_control_PA.py
-  4) A master script calling on these 3 subprocesses together
+Structure:
+The CatBot control code is organized into the following modules:
+
+1) **Roll-to-roll system** – manages wire movement and deposition; implemented in `Nickel_wire_control_PA.py`  
+2) **Liquid distribution system** – controls pumps and fluid handling; implemented in `Liquid_distribution_control_PA.py`  
+3) **Temperature control system** – maintains temperatures in the chambers; implemented in `temperature_control_PA.py`  
+4) **Potentiostat control system** – connects the potentiostat as well as maintaining electrical connection; implemented in `potentiostat_switching_control_PA.py` and `admiral_experimental_setups.py`
+6) **Master control script** – coordinates the four subsystems to run complete experiments including electrodeposition and subsequent testing
+
      
-In order to
+Before starting
 
  For example, temperature_control_PA.py uses hard-coded calibration
 data and Serial port constructor values which will need to be updated on
 a new system
 
-To run an experiment, the user needs to change the following aspects
-1)  Ensure that the COM ports of the liquid distribution system and temperature measurement systems are correct when calling and initializing the robot:
-  Robot_test = CatBot(serialcomm_temp='COM4', 
-                      serialcomm_liquid='COM6') # Ensure these are correct COM port
-2) In Python/temperature_control_PA.py a hard-coded calibration is used for setting the correct temperature in the following functions:
-      set_temperature_both_chambers
-       set_temperature_deposition
-   set_temperature_testing
-    
-     The calibration which depends on temperature can be found for the function is this:
-   get_temperature_correction_dep()
-   This should be changed depending on the setup
+## 1. Serial Port (COM Port) Configuration
+
+The primary scripts use specific, hard-coded COM ports to communicate with the liquid distribution and temperature control systems.
+Note that the liquid distribution system also hands wire rolling as well as potentiostat connections.
+
+* **Action:** Update the `serialcomm_temp` and `serialcomm_liquid` parameters below to use the correct COM ports assigned by your operating system.
+
+```python
+# UPDATE THESE VALUES
+Robot_test = CatBot(
+    serialcomm_temp='COM4',    # <- Verify and update the COM port for the temperature system
+    serialcomm_liquid='COM6'   # <- Verify and update the COM port for the liquid system
+)
+```
+
+### 2. Temperature Calibration Data
+
+The file `Python/temperature_control_PA.py` relies on a **hard-coded calibration** curve to ensure accurate temperature setting. This calibration is specific to the hardware setup and must be verified or updated for your system.
+
+* **Calibration Function:** The relevant calibration logic is contained within the function:
+    ```python
+    get_temperature_correction_dep()
+    ```
+* **Impact:** The data provided by this function is consumed by the main temperature control methods:
+    * `set_temperature_both_chambers`
+    * `set_temperature_deposition`
+    * `set_temperature_testing`
+
+Update the `get_temperature_correction_dep()` function's implementation based on your current setup's temperature readings.
 
 
 
 ## Full Example
 
-This script shows how to initialize **CatBot**, configure an experiment, and run it.  
+This script shows how to initialize **CatBot**, configure an experiment, and run it. The script can also be found under Python/ExperimentRunningScripts/run_arbitrary_experiment.py 
 Update the COM ports and output folder before running.  
 
 ```python

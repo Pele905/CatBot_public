@@ -164,6 +164,10 @@ def save_suggested_experiments_to_ML_log(
 
 
 def calculate_volumes(stock_solutions, desired_concentrations, chamber_volume):
+    '''
+        Calculate the volumes needed from each syringe pump to achieve the desired 
+        molar concentrations.
+    '''
     total_volume = 0
     volumes = {}
 

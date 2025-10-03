@@ -20,7 +20,7 @@ def get_temperature_correction_test(T):
         Corrections are based on the following data.
     '''
     if T > 29.75:
-        delta_T = round((1 / 0.96) * 0.0834 * (T - 29.75), 2)  # We have to add 
+        delta_T = round((1 / 0.96) * 0.0834 * (T - 29.75), 2)  
         return delta_T
     return 0
 
@@ -31,7 +31,7 @@ def get_temperature_correction_dep(T):
         Corrections are based on the following data.
     '''
     if T > 29.75:
-        delta_T = round((1 / 0.96) * 0.0834 * (T - 29.75), 2)  # We have to add 
+        delta_T = round((1 / 0.96) * 0.0834 * (T - 29.75), 2)  
         return delta_T
     return 0
 

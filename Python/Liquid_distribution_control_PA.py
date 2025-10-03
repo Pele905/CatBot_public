@@ -160,8 +160,10 @@ def pump_liquids_syringe(command_dict,
                          flush_volume = 4, 
                          chamber = "testing"):
     '''
-        Pump liquid from the syringe pump to the testing cell
-        input params: command_dict, serialcomm, volume_df
+        Pump liquid from the syringe pump into the testing / deposition chamber
+        Also saves the history, such that we know how much volume is left in the syringe pump
+
+        Recharges automatically, thus if a syringe pump is empty, it gets refilled before it pumps in new liquid.
     '''
     try:
         liquid_data = open(data_logger_file)

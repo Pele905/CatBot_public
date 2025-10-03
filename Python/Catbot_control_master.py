@@ -5,7 +5,9 @@ from PySide2.QtWidgets import QApplication
 
 from temperature_control_PA import (set_temperature_deposition, 
                                     set_temperature_testing, 
-                                    set_temperature_both_chambers)
+                                    set_temperature_both_chambers, 
+                                    check_convergence_periodically, 
+                                    save_png_continuously)
 
 from utils import calculate_volumes
 from datetime import datetime
@@ -171,6 +173,7 @@ class CatBot:
         
         print("We get to final part")
         self.stop_event_temp_thread = threading.Event()
+
 
         self.temp_thread = threading.Thread(target=set_temperature_both_chambers, 
                                       args=(temperature_dep_electrolyte,
@@ -346,6 +349,9 @@ class CatBot:
         return 
     
     def pump_liquids(self, data_logger_file = None, pump_data_dict = {}, chamber = "deposition"):
+        '''
+            Pumps liquids into the desired chamber 
+        '''
         if data_logger_file == None:
             data_logger_file = "datalogger.json"
         while pump_liquids_syringe(pump_data_dict, 
@@ -575,7 +581,7 @@ class CatBot:
     
     def dip_wire_into_HCl(self, dipping_time = 0, update_parameter_dict = False, parameter_dict_path = ""):
         '''
-            Dips wire into HCl and fills the chamber at the same time 
+            Dips wire into HCl chamber and fills it with  HCl
         '''
         #steps_rolled = 1#roll_wire_into_HCl(self.serialcomm_liquid)
         if dipping_time != 0:
@@ -596,6 +602,9 @@ class CatBot:
 
     
     def roll_wire_deposition_testing(self, through = True, update_parameter_dict = False, parameter_dict_path = "", calibrate_ref = False):
+        '''
+            Rolls wire from the deposition chamber to the testing chamber
+        '''
         steps_rolled = roll_wire_deposition_testing(self.serialcomm_liquid, 
                                                     through=through,
                                                     calibrate_ref=calibrate_ref)
@@ -610,6 +619,9 @@ class CatBot:
                 json.dump(existing_data, json_file, indent=4)
         
     def roll_wire_HCl_to_water(self, update_parameter_dict = False, parameter_dict_path = ""):
+        '''
+            Rolls wire from the HCl chamber to the water chamber
+        '''
         steps_rolled = roll_wire_HCl_to_water(self.serialcomm_liquid)
         if os.path.exists(parameter_dict_path) and update_parameter_dict == True:
             with open(parameter_dict_path, 'r') as json_file:
@@ -622,7 +634,7 @@ class CatBot:
     
     def roll_wire_water_deposition(self, through = True, update_parameter_dict = False, parameter_dict_path = ""):
         '''
-            If true, it allows for the rolling through mechanism during deposition
+            Rolls wire from the water chamber into the deposition chamber. 
         '''
         steps_rolled = roll_wire_water_deposition(self.serialcomm_liquid, through = through)
         if os.path.exists(parameter_dict_path) and update_parameter_dict == True:

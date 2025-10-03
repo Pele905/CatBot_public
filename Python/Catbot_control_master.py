@@ -1,30 +1,50 @@
 import serial 
 import threading 
-from temperature_control_PA import * 
-from Liquid_distribution_control_PA import *
-from Nickel_wire_control_PA import *
-from admiral_experimental_setups import *
-from potentiostat_switching_control_PA import *
-from utils import *
+
+from PySide2.QtWidgets import QApplication
+
+from temperature_control_PA import (set_temperature_deposition, 
+                                    set_temperature_testing, 
+                                    set_temperature_both_chambers)
+
+from Liquid_distribution_control_PA import (
+    pump_liquids_syringe, 
+    pump_liquid_testing_waste, pump_liquid_deposition_waste, 
+    pump_liqiud_mixing_deposition, 
+    pump_liquid_mixing_test, 
+    pump_HCl_from_cleaning_station_to_holder, 
+    pump_HCl_into_cleaning_station,
+    set_liquids_syringe)
+
+from Nickel_wire_control_PA import (
+    roll_wire_deposition_testing,
+    roll_wire_water_deposition,
+    roll_wire_HCl_to_water,
+    roll_wire_N_steps, 
+    roll_wire_while_depositing, 
+    reset_wheel_to_start, 
+    reset_actuator
+)
+from admiral_experimental_setups import (run_specified_experiment, 
+                                         run_new_testing_protocol, 
+                                         run_CV_stability_wait_tests,
+                                         run_testing_protocol_coated_wires, 
+                                         run_GEIS, 
+                                         run_OCP, )
+
+from potentiostat_switching_control_PA import (activate_potentiostat_deposition, 
+                                               activate_potentiostat_testing, 
+                                               deactivate_potentiostat_deposition, 
+                                               deactivate_potentiostat_testing)
+
 import os
-from experimental_protocols import *
-from experiment_class import * 
-# How it needs to work: 
-# We need to setup an experiment, 
-# Each experiments parameters will need to be deterimined and then saved in a log file 
-# We need a function that we call from here, which calls on different functions from different scripts 
-
-
-# Lets say we first manually give it a temperature, 2 different liquids, a deposition time, and deposition current
-# liquids = {}
-# temperature_dep = 
-# temp_test = 
-# dep_current = 
-# dep_time = 
-# We need to dynamically know status of syringe pumps
-
+from experiment_class import Experiment
+import json
+from time import time
+# Class that manages all robot components and provides functionality 
+# for configuring and running experiments
 class CatBot:
-    def __init__(self, serialcomm_liquid = None, serialcomm_temp = None):
+    def __init__(self, serialcomm_liquid = None, serialcomm_temp = None, stock_solutions = None):
 
         self.reload = False 
         self.app = QApplication([])
@@ -44,20 +64,24 @@ class CatBot:
                 print("Failed to connect to all COM ports")
                 print(e)
 
-        self.pumping_liquids = {"NiSO4": {"Pump": 1, "amount ml" : 10.5}, 
-                                "FeSO4": {"Pump": 2, "amount ml" : 0},
-                                "MnSO4": {"Pump": 3, "amount ml" : 0},
-                                "CoSO4": {"Pump": 4, "amount ml" : 0},
-                                "HeSO4": {"Pump": 5, "amount ml" : 0},
-                                "HgSO4": {"Pump": 6, "amount ml" : 0},
-                                "NiCl": {"Pump": 7, "amount ml" : 0},
-         }
+
+        
         
         # The stock solution inside the different syringe pumps 
-        self.stock_solutions = {"H2SO4": {"Pump": 4, "Concentration [mol/L]" : 1}, 
-                                'NiSO4' : {"Pump": 6, "Concentration [mol/L]" : 0.4},
-                                'Na2Mo' : {"Pump": 7, "Concentration [mol/L]" : 0.4},
-                        "H2O": {"Pump": 3}} 
+        if stock_solutions == None:
+            self.stock_solutions = {"H2SO4": {"Pump": 4, "Concentration [mol/L]" : 1}, 
+                                    'NiSO4' : {"Pump": 6, "Concentration [mol/L]" : 0.4},
+                            "H2O": {"Pump": 3}} 
+            
+            self.pumping_liquids = {
+                                "H2O": {"Pump": 3, "amount ml" : 0},
+                                "H2SO4": {"Pump": 4, "amount ml" : 0},
+                                "H2O": {"Pump": 5, "amount ml" : 0},
+                                "NiSO4": {"Pump": 6, "amount ml" : 0}, 
+                                "H2O": {"Pump": 7, "amount ml" : 0}, 
+         }
+        else:
+            self.stock_solutions = stock_solutions
         
         # Cleaning liquids command for deposition chamber
         self.cleaning_liquids_command_dep = {
@@ -76,18 +100,9 @@ class CatBot:
                                 "H2O": {"Pump": 2, "amount ml" : 4},}
         
         self.fill_deposition_tubing_command = {} # Should be called whenever we want to fill testing tubing
-        # With some amount of liquid 
-        self.cleaning_liquids_command_test = {"KOH": {"Pump": 1, "amount ml" : 0}, 
-                                "H2O": {"Pump": 2, "amount ml" : 12},
-                                "MnSO4": {"Pump": 3, "amount ml" : 0},
-                                "CoSO4": {"Pump": 4, "amount ml" : 0},
-                                "HeSO4": {"Pump": 5, "amount ml" : 0},
-                                "HgSO4": {"Pump": 6, "amount ml" : 0},
-                                "Cleaning solution": {"Pump": 7, "amount ml" : 0}}
 
         self.temp_test = 30
         self.liquid_max = 15 # Max amount of liquid to distribute into the holder 
-        self.logfile = "Logfile_temp_1.txt"
         self.syringe_pump_status = []
 
     def get_experiment_from_ML():
@@ -354,7 +369,6 @@ class CatBot:
             data_logger_file = "datalogger.json"
         
         # Concentration 
-        
         if concentration > 30:
             print("Concentration exceeds the KOH concentration of 30 wt %")
             return ValueError
@@ -371,7 +385,6 @@ class CatBot:
         confirmation = True
         return confirmation
     
-
     
     def initialize_testing_setup(self, data_logger_file = None):
         if data_logger_file == None:
@@ -471,8 +484,7 @@ class CatBot:
     
     def clean_testing_chamber(self, data_logger_file = None, waiting_time = 60, cleaning_cycles = 2):
         '''
-            Pumps water into mixing chamber twice, and the water waits inside for 
-            waiting time before rinsing and repeating
+            Pumps water into the testing chamber cleaning_cycles times, and waits
         '''
         if data_logger_file == None:
             data_logger_file = "datalogger.json"
@@ -496,8 +508,7 @@ class CatBot:
                                   squidstat_name = ""):
         
         '''
-            Runs deposition experiment. 
-            Roll while depositing if roll_while_depositing = True
+            Executes deposition experiment with the wire as a working electrode. 
         '''
         print("Rolling while depositing is set to : ", roll_while_depositing)
         if roll_while_depositing:
@@ -743,7 +754,9 @@ class CatBot:
                                experiment = None, 
                                clean_testing_holder = True
                                ):
-        
+        '''
+            Runs an experiment without applying a coating onto the Nickel wire electrode.
+        '''
         if initialize_testing_setup == True: # Fills tubes if you use arduino script to fill syringe pumps 
             # this function essentially fills up the water and liquid tubings with the needed amount of liquid
             # This is then emptied later 
@@ -816,7 +829,7 @@ class CatBot:
     
     def evacuate_all_tubings(self, evacuation_volume = 4):
         '''
-            Function that evacuated the volume in all tubings and ensures to airholes
+            Function that evacuates volume in all tubings to ensure that there are no airbubbles when starting an experiment
         '''
         evacuate_tubings_command = {"0": {"Pump": 1, "amount ml" : evacuation_volume}, 
                                 "1": {"Pump": 2, "amount ml" : evacuation_volume},
@@ -918,7 +931,8 @@ class CatBot:
         
        
         for _ in range(repeat_experiment_n_times):
-
+            
+            # Calculate the amount in ml of each solution to ensure the correct concentration of different metals in the deposition liquid
             self.pumping_liquids = calculate_volumes(self.stock_solutions, 
                                         liquid_concentrations, 
                                         chamber_volume=deposition_filling_volume_ml)
@@ -1023,10 +1037,6 @@ class CatBot:
             # Pump the deposition solution into the deposition chamber
             self.pump_liquids(pump_data_dict=self.pumping_liquids, 
                             chamber="deposition")
-            print(self.pump_liquids)
-            time.sleep(1)
-
-            print(self.pumping_liquids)
             
             time.sleep(1)
             # Set the temperature in deposition and testing chamber
@@ -1035,7 +1045,6 @@ class CatBot:
                                 temperature_dep_electrolyte=temp_deposition)
             time.sleep(1)
             
-
             # Setting the temperature of both chambers
             # Calls the function that fills the chamber with HCl and also dips it for x amount of seconds 
             if keep_wire_stationary == False:
@@ -1145,9 +1154,7 @@ class CatBot:
             self.uninitialize_potentiostat_testing() # Disconnect the potentiostat to the wire (working electrode), the counter electrode and the reference electrode in the testing chamber
             experiment.update_experiment_count() # Update the experiment count (+1)
             
-    
 
-    
     def close_connection(self):
         try:
 

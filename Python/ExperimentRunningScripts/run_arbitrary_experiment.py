@@ -7,21 +7,30 @@ sys.path.append(parent_dir)
 analysis_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', "Live_data_analysis"))
 sys.path.append(analysis_path)
 from Catbot_control_master import CatBot
-from utils import *
 from experimental_protocols import coated_wire_testing_protocol_1
 from experiment_class import Experiment
-
+from time import time
 
 # Initialize the robot, 
 # Important, when initializing robot, the serialcomms for temperature and liquid needs to be changed according to the users computer
 Robot_test = CatBot(serialcomm_temp='COM4',
                     serialcomm_liquid='COM6') 
 
-# Wait top ensure robot is connected properly
+# Wait top ensure robot is ready to recieve commands
 time.sleep(15)
+
+# Define the deposition solution in your experimental pumps:
+stock_solutions = {"H2SO4": {"Pump": 4, "Concentration [mol/L]" : 1}, 
+                    'NiSO4' : {"Pump": 6, "Concentration [mol/L]" : 0.4},
+                    "H2O": {"Pump": 3}} 
+
+Robot_test.stock_solutions = stock_solutions
+
 
 # Define the output data folder, where the data will be stored
 output_data_folder = r"C:\Users\Catbot-adm\Desktop\EC_data_CatBot\Ni_Mo_optimization"
+
+
 # Define both a testing experiment, and give the testing experiment a name
 # The experiment is of type AisExperiment, the name ins a string
 testing_experiment, testing_protocol_name = coated_wire_testing_protocol_1()

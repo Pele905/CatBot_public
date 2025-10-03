@@ -43,16 +43,38 @@ Robot_test = CatBot(
 
 The file `Python/temperature_control_PA.py` relies on a **hard-coded calibration** curve to ensure accurate temperature setting. This calibration is specific to the hardware setup and must be verified or updated for your system.
 
-* **Calibration Function:** The relevant calibration logic is contained within the function:
+* **Calibration Function:** The relevant calibration logic is contained within the functions:
     ```python
-    get_temperature_correction_dep()
+    def get_temperature_correction_dep(T):
+    '''
+        Function that adds the correct offset to the temperature to ensure that
+        the liquid electrolyte obtains the correct temperature.
+        Corrections are based on the following data.
+    '''
+    if T > 29.75:
+        delta_T = round((1 / 0.96) * 0.0834 * (T - 29.75), 2)  
+        return delta_T
+    return 0
+
+    def get_temperature_correction_test(T):
+    '''
+        Function that adds the correct offset to the temperature to ensure that
+        the liquid electrolyte obtains the correct temperature.
+        Corrections are based on the following data.
+    '''
+    if T > 29.75:
+        delta_T = round((1 / 0.96) * 0.0834 * (T - 29.75), 2)  
+        return delta_T
+    return 0
     ```
+    These functions adds a constant linear shift depending on temperature such that the set temperature equals the temperature in the chamber
 * **Impact:** The data provided by this function is consumed by the main temperature control methods:
     * `set_temperature_both_chambers`
     * `set_temperature_deposition`
     * `set_temperature_testing`
 
-Update the `get_temperature_correction_dep()` function's implementation based on your current setup's temperature readings.
+Update the `get_temperature_correction_dep()` and `get_temperature_correction_test()` functions based on your current setup's temperature readings.
+This might mean changing the slope of the temperature offset.
 
 
 

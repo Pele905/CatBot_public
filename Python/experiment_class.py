@@ -2,8 +2,7 @@ from experimental_protocols import *
 import os
 from datetime import datetime
 from utils import *
-# Experimental params should contain all the things we need to know about an experiment
-# What temperature to set the different chambers 
+
 
 experiment = {"Temperature_deposition [C]" : 30, 
               "Temperature_testing [C]" : 80,
@@ -48,7 +47,20 @@ def try_to_make_folder(path):
     else:
         print("Folder already exists")
 
+
 class Experiment:
+    """
+        Represents a single experimental run, capturing all parameters, metadata, and comments 
+        to ensure reproducibility and facilitate error tracking.
+
+        Attributes:
+            experimental_params (dict): A dictionary containing all relevant experimental parameters, 
+                such as testing temperature, solution concentrations, wire types, and any associated notes or comments.
+
+        This class is used to define and organize an experiment, and can be integrated with CatBot 
+        to execute the experiment automatically.
+        
+    """
     def __init__(self, 
                  experimental_params = None):
         if experimental_params is None:

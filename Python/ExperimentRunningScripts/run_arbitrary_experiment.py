@@ -9,7 +9,7 @@ sys.path.append(analysis_path)
 from Catbot_control_master import CatBot
 from experimental_protocols import coated_wire_testing_protocol_1
 from experiment_class import Experiment
-from time import time
+import time
 
 # Initialize the robot, 
 # Important, when initializing robot, the serialcomms for temperature and liquid needs to be changed according to the users computer
@@ -28,7 +28,7 @@ Robot_test.stock_solutions = stock_solutions
 
 
 # Define the output data folder, where the data will be stored
-output_data_folder = r"C:\Users\Catbot-adm\Desktop\EC_data_CatBot\Ni_Mo_optimization"
+output_data_folder = r""
 
 
 # Define both a testing experiment, and give the testing experiment a name
@@ -55,7 +55,7 @@ experiment_example_1 = Experiment(
         "Clean after testing": True, # Flush testing chamber with water after experiment (bool)
         "Maintain KOH after testing": False, # Keep/reuse KOH solution after test (bool)
         "HCl dipping time [s]": 900, # Wire pretreatment in HCl (s, float)
-        "HCl cleaning concentration [mol / L]": 3, # HCl cleaning solution concentration (mol/L, float)
+        "HCl concentration [mol / L]": 3, # HCl cleaning solution concentration (mol/L, float)
         "KOH filling volume [ml]": 10.9, # KOH volume used in testing chamber (mL, float)
         "Deposition filling volume [ml]": 15, # Deposition solution volume (mL, float)
         "Experiment name": "", # Optional experiment name (string)

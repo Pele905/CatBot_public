@@ -45,10 +45,20 @@ from potentiostat_switching_control_PA import (activate_potentiostat_deposition,
 import os
 from experiment_class import Experiment
 import json
-from time import time
+import time
 # Class that manages all robot components and provides functionality 
 # for configuring and running experiments
 class CatBot:
+    """
+        Orchestrates all modules required to run an experiment, coordinating hardware and software components.
+
+        Responsibilities:
+            - Controls temperature settings for the experiment.
+            - Executes electrochemical experiments via by connection to potentiostat as well as ensuring proper electrical connections
+            - Manages liquid handling operations.
+            - Manages rolling the wire through different stages
+            - Integrates all modules to run experiments smoothly and reliably.
+    """
     def __init__(self, serialcomm_liquid = None, serialcomm_temp = None, stock_solutions = None):
 
         self.reload = False 
@@ -350,7 +360,7 @@ class CatBot:
     
     def pump_liquids(self, data_logger_file = None, pump_data_dict = {}, chamber = "deposition"):
         '''
-            Pumps liquids into the desired chamber 
+            Pumps all the liquids from the pump_data_dict into the testing / deposition chambers
         '''
         if data_logger_file == None:
             data_logger_file = "datalogger.json"

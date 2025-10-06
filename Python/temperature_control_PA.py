@@ -347,21 +347,18 @@ def set_temperature_both_chambers(temperature_dep = 30, temperature_test = 30,
                                   filename = "data.json", serialcomm = None, 
                                temp_df = None, stop_event = None):
     if serialcomm == None:
-        serialcomm = serial.Serial('/dev/cu.usbmodem1101', 9600, timeout=2) # Communication to arduino occurs through modem
+        serialcomm = serial.Serial('/dev/cu.usbmodem1101', 9600, timeout=2) # 
     
     time.sleep(5)
-    # Write the desired temperature to the arduino controller 
-    # Since we regulate temperature by using the copper chamber, the temperature of the electrolyte is 
-    # less. Therefore we add a constant offset to this to ensure the liquid temperature is 
-    # consistent
 
+    # Add the correction temperature to ensure the correct temperature is set in deposition chamber
     temperature_correction_dep = get_temperature_correction_dep(temperature_dep)
-    temp_cmd = "Deposition " + str((temperature_dep + temperature_correction_dep) * 1.035) # Correction found from Runes temp tests
+    temp_cmd = "Deposition " + str((temperature_dep + temperature_correction_dep) * 1.035)
     
+    # Add the correction temperature to ensure the correct temperature is set in testing chamber
     temperature_correction_test = get_temperature_correction_test(temperature_test)
     
     temp_cmd += " Testing " + str(temperature_test + temperature_correction_test)
-    #serialcomm.write(temp_cmd.encode())
     confirmation = send_command_with_confirmation(serialcomm=serialcomm,
                                    temp_cmd=temp_cmd)
     

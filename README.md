@@ -38,7 +38,7 @@ Robot_test = CatBot(
     serialcomm_liquid='COM6'   # <- Verify and update the COM port for the liquid system
 )
 ```
-The same should be said about the COM port for the squidstat needs to be updated to the users computer:
+The same should be done about the COM port for the potentiostat that is connected to your computer. 
 
 ```python
 self.run_deposition_experiment(deposition_current_density=deposition_current_density_mA, 

@@ -112,7 +112,7 @@ sys.path.append(analysis_path)
 from Catbot_control_master import CatBot
 from experimental_protocols import coated_wire_testing_protocol_1
 from experiment_class import Experiment
-from time import time
+import time
 
 # Initialize the robot, 
 # Important, when initializing robot, the serialcomms for temperature and liquid needs to be changed according to the users computer

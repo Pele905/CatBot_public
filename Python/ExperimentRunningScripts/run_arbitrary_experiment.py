@@ -28,8 +28,7 @@ Robot_test.stock_solutions = stock_solutions
 
 
 # Define the output data folder, where the data will be stored
-output_data_folder = r""
-
+output_data_folder = r"path/to/data"
 
 # Define both a testing experiment, and give the testing experiment a name
 # The experiment is of type AisExperiment, the name ins a string

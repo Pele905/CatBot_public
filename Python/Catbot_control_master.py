@@ -35,8 +35,10 @@ from admiral_experimental_setups import (run_specified_experiment,
                                          run_CV_stability_wait_tests,
                                          run_testing_protocol_coated_wires, 
                                          run_GEIS, 
-                                         run_OCP, )
+                                         run_OCP, 
+                                         )
 
+from experimental_protocols import deposition_experiment
 from potentiostat_switching_control_PA import (activate_potentiostat_deposition, 
                                                activate_potentiostat_testing, 
                                                deactivate_potentiostat_deposition, 
@@ -1109,7 +1111,7 @@ class CatBot:
                                             filename=filename_deposition_data, 
                                             roll_while_depositing = roll_while_depositing, 
                                             squidstat_name="Plus2254", 
-                                            COM_port="COM9")
+                                            COM_port="COM9") # Check on your own computer to see that potentiostat connects to the correct COM port
 
                 
                 self.pump_liquid_deposition_waste() # Pump the deposition liquid into the waste bin

@@ -38,7 +38,24 @@ Robot_test = CatBot(
     serialcomm_liquid='COM6'   # <- Verify and update the COM port for the liquid system
 )
 ```
+The same should be said about the COM port for the squidstat needs to be updated to the users computer:
 
+```python
+self.run_deposition_experiment(deposition_current_density=deposition_current_density_mA, 
+                                            deposition_time=deposition_time, 
+                                            filename=filename_deposition_data, 
+                                            roll_while_depositing = roll_while_depositing, 
+                                            squidstat_name="Plus2254", 
+                                            COM_port="COM9") # Change the COM port to match your computers COM port
+```
+and 
+```python
+run_specified_experiment(filename=filename_calibration_data, 
+                                        app=self.app, 
+                                        experiment=nickel_calibration_exp,
+                                        COM_port="COM9",
+                                        squidstat_name="Plus2254")  # Change the COM port to match your computers COM port
+```
 ### 2. Temperature Calibration Data
 
 The file `Python/temperature_control_PA.py` relies on a **hard-coded calibration** curve to ensure accurate temperature setting. This calibration is specific to the hardware setup and must be verified or updated for your system.

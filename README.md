@@ -129,10 +129,8 @@ stock_solutions = {"H2SO4": {"Pump": 4, "Concentration [mol/L]" : 1},
 
 Robot_test.stock_solutions = stock_solutions
 
-
 # Define the output data folder, where the data will be stored
 output_data_folder = r"path/to/output"
-
 
 # Define both a testing experiment, and give the testing experiment a name
 # The experiment is of type AisExperiment, the name ins a string
@@ -178,7 +176,6 @@ Robot_test.run_complete_experiment(experiment=experiment_example_1,
                                 keep_wire_stationary=False, 
                                 evacuate_chambers_before_starting=True, 
                                 output_data_folder=output_data_folder)
-
 
 time.sleep(5)
 # Set the temperature low after finishing an experiment for safety 

@@ -56,7 +56,7 @@ class CatBot:
 
         Responsibilities:
             - Controls temperature settings for the experiment.
-            - Executes electrochemical experiments via by connection to potentiostat as well as ensuring proper electrical connections
+            - Executes electrochemical experiments by connection to potentiostat as well as ensuring proper electrical connections
             - Manages liquid handling operations.
             - Manages rolling the wire through different stages
             - Integrates all modules to run experiments smoothly and reliably.

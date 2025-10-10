@@ -58,7 +58,7 @@ run_specified_experiment(filename=filename_calibration_data,
 ```
 ### 2. Temperature Calibration Data
 
-The file `Python/temperature_control_PA.py` relies on a **hard-coded calibration** curve to ensure accurate temperature setting. This calibration is specific to the hardware setup and must be verified or updated for your system.
+The file `Python/temperature_control_PA.py` relies on a **hard-coded calibration** curve to ensure accurate temperature setting. This calibration is specific to the hardware setup and must be verified or updated for your system. In our setup, we observed an empirical temperature offset of (1 / 0.96) × 0.0834 = 0.086 °C/°C when the temperature was higher than 30 °C. This means we had to increase the set temperature by 0.086 °C for every degree to maintain the actual desired temperature.
 
 * **Calibration Function:** The relevant calibration logic is contained within the functions:
     ```python

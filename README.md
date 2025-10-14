@@ -28,7 +28,7 @@ a new system
 
 The primary scripts use specific, hard-coded COM ports to communicate with the liquid distribution and temperature control systems.
 Note that the liquid distribution system also hands wire rolling as well as potentiostat connections. COM ports can be located by navigating to "Device Manager" in Windows, and then 
-scrolling down to reveal "ports (COM & LPT).
+scrolling down to reveal "ports (COM & LPT)".
 
 * **Action:** Update the `serialcomm_temp` and `serialcomm_liquid` parameters below to use the correct COM ports assigned by your operating system.
 

@@ -27,7 +27,8 @@ a new system
 ## 1. Serial Port (COM Port) Configuration
 
 The primary scripts use specific, hard-coded COM ports to communicate with the liquid distribution and temperature control systems.
-Note that the liquid distribution system also hands wire rolling as well as potentiostat connections.
+Note that the liquid distribution system also hands wire rolling as well as potentiostat connections. COM ports can be located by navigating to "Device Manager" in Windows, and then 
+scrolling down to reveal "ports (COM & LPT).
 
 * **Action:** Update the `serialcomm_temp` and `serialcomm_liquid` parameters below to use the correct COM ports assigned by your operating system.
 
@@ -59,6 +60,9 @@ run_specified_experiment(filename=filename_calibration_data,
 ### 2. Temperature Calibration Data
 
 The file `Python/temperature_control_PA.py` relies on a **hard-coded calibration** curve to ensure accurate temperature setting. This calibration is specific to the hardware setup and must be verified or updated for your system. In our setup, we observed a temperature offset when the temperature was higher than 30 °C. We found empirically that adding (1 / 0.96) × 0.0834 = 0.086 °C/°C, to the set temperature i.e., increasing it by 0.086 °C for every degree yielded the correct actual temperature.
+
+To calibrate the temperature settings of your setup, select a series of setpoints, for example, 30, 40, 50, 60, 70, and 80 °C and measure the temperature offset (ΔT) at each point.
+The temperature offset ΔT should vary linearly with the set temperature. The slope of this relationship indicates how much you need to adjust the set temperature to achieve the actual desired temperature.
 
 * **Calibration Function:** The relevant calibration logic is contained within the functions:
     ```python

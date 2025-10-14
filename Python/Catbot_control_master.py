@@ -61,7 +61,11 @@ class CatBot:
             - Manages rolling the wire through different stages
             - Integrates all modules to run experiments smoothly and reliably.
     """
-    def __init__(self, serialcomm_liquid = None, serialcomm_temp = None, stock_solutions = None):
+    def __init__(self, serialcomm_liquid = "COM9", 
+                 serialcomm_temp = "COM10", 
+                 stock_solutions = {"H2SO4": {"Pump": 4, "Concentration [mol/L]" : 1}, 
+                    'NiSO4' : {"Pump": 6, "Concentration [mol/L]" : 0.4},
+                    "H2O": {"Pump": 3}}):
 
         self.reload = False 
         self.app = QApplication([])

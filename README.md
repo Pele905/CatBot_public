@@ -187,36 +187,37 @@ Robot_test.set_temperature_both_chambers(filename="cooldown_T.json",
                                          temperature_dep_electrolyte=30,
                                            temperature_KOH=30)
 ```
-Experimental Parameters
-Parameter	Description	Type	Example / Default	Typical Range / Notes
-Temperature_deposition [C]	Deposition temperature	float	50	~20–90 °C
-Temperature_testing [C]	Testing chamber temperature	float	80	~20–90 °C
-Testing liquid KOH [w %]	KOH concentration in testing solution	float	30	10–40 wt %
-Deposition composition	Deposition bath composition (species → molarity)	dict[str → float]	{ "NiSO4": 0.1275 }	Typically 0.01–0.5 M
-Roll while depositing	Roll wire during deposition	bool	True	Enables moving substrate during deposition
-Testing protocol	Testing procedure and metadata	dict	{ "testing protocol name": ..., "protocol": ... }	Defines test sequence
-Deposition time [s]	Deposition duration	float	129	Depends on desired thickness
-Deposition current density [mA/cm2]	Deposition current density	float	70.99	~1–200 mA/cm²
-Wire type	Wire material and purity	str	"Ni 99.8 %"	e.g., Ni, Cu, Mo
-Filename testing data	Output file for testing data	str	""	Optional
-Filename deposition data	Output file for deposition data	str	""	Optional
-Filename temperature data	Output file for temperature log	str	""	Optional
-Filename folder	Custom output folder path	str	""	Optional
-General comments	Free-text notes about experiment	str	"No comment"	Optional
-Clean after testing	Flush testing chamber with water	bool	True	Recommended
-Maintain KOH after testing	Keep/reuse KOH solution	bool	False	True only if same batch reused
-HCl dipping time [s]	Wire pretreatment duration in HCl	float	900	30–1800 s typical
-HCl cleaning concentration [mol / L]	HCl concentration for cleaning	float	3	0.1–5 mol/L
-KOH filling volume [ml]	Volume of KOH solution in testing chamber	float	10.9	Depends on cell volume
-Deposition filling volume [ml]	Volume of deposition solution	float	15	Depends on chamber size
-Experiment name	Optional experiment name	str	""	Free text
-KOH batch	Batch ID / preparation notes	str	"Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %"	Record provenance
-Repeat experiment n cycles	Number of experiment repetitions	int	1	≥ 1
-Cleaning waiting time testing [s]	Dwell time for cleaning solution (testing chamber)	float	60	10–120 s typical
-Cleaning waiting time deposition [s]	Dwell time for cleaning solution (deposition chamber)	float	60	10–120 s typical
-Cleaning cycles testing chamber	Number of cleaning cycles (testing chamber)	int	2	1–5
-Cleaning cycles deposition chamber	Number of cleaning cycles (deposition chamber)	int	2	1–5
-Deposition batch	Stock electrolyte used for deposition	str	"Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24"	Record preparation details
+| Parameter                              | Description                                           | Type                | Example / Default                                                                   | Typical Range / Notes                      |
+| -------------------------------------- | ----------------------------------------------------- | ------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------ |
+| `Temperature_deposition [C]`           | Deposition temperature                                | `float`             | 50                                                                                  | ~20–90 °C                                  |
+| `Temperature_testing [C]`              | Testing chamber temperature                           | `float`             | 80                                                                                  | ~20–90 °C                                  |
+| `Testing liquid KOH [w %]`             | KOH concentration in testing solution                 | `float`             | 30                                                                                  | 10–40 wt %                                 |
+| `Deposition composition`               | Deposition bath composition (species → molarity)      | `dict[str → float]` | `{ "NiSO4": 0.1275 }`                                                               | Depends on experiment                       |
+| `Roll while depositing`                | Roll wire during deposition                           | `bool`              | `True`                                                                              | Enables moving substrate during deposition |
+| `Testing protocol`                     | Testing procedure and metadata                        | `dict`              | `{ "testing protocol name": ..., "protocol": ... }`                                 | Defines test sequence                      |
+| `Deposition time [s]`                  | Deposition duration                                   | `float`             | 129                                                                                 | Depends on desired thickness               |
+| `Deposition current density [mA/cm2]`  | Deposition current density                            | `float`             | 70.99                                                                               | Depends on experiment                              |
+| `Wire type`                            | Wire material and purity                              | `str`               | `"Ni 99.8 %"`                                                                       | e.g., Ni, Cu, Mo                           |
+| `Filename testing data`                | Output file for testing data                          | `str`               | `""`                                                                                | Optional                                   |
+| `Filename deposition data`             | Output file for deposition data                       | `str`               | `""`                                                                                | Optional                                   |
+| `Filename temperature data`            | Output file for temperature log                       | `str`               | `""`                                                                                | Optional                                   |
+| `Filename folder`                      | Custom output folder path                             | `str`               | `""`                                                                                | Optional                                   |
+| `General comments`                     | Free-text notes about experiment                      | `str`               | `"No comment"`                                                                      | Optional                                   |
+| `Clean after testing`                  | Flush testing chamber with water                      | `bool`              | `True`                                                                              | Recommended                                |
+| `Maintain KOH after testing`           | Keep/reuse KOH solution                               | `bool`              | `False`                                                                             | `True` only if same batch reused           |
+| `HCl dipping time [s]`                 | Wire pretreatment duration in HCl                     | `float`             | 900                                                                                 | 30–1800 s typical                          |
+| `HCl cleaning concentration [mol / L]` | HCl concentration for cleaning                        | `float`             | 3                                                                                   | 0.1–5 mol/L                                |
+| `KOH filling volume [ml]`              | Volume of KOH solution in testing chamber             | `float`             | 10.9                                                                                | Depends on chamber volume                     |
+| `Deposition filling volume [ml]`       | Volume of deposition solution                         | `float`             | 15                                                                                  | Depends on chamber volume                    |
+| `Experiment name`                      | Optional experiment name                              | `str`               | `""`                                                                                | Free text                                  |
+| `KOH batch`                            | Batch ID / preparation notes                          | `str`               | `"Batch fabricated 04.11 Pre electrolyzed 100 h 30 wt %"`                           | Record provenance                          |
+| `Repeat experiment n cycles`           | Number of experiment repetitions                      | `int`               | 1                                                                                   | ≥ 1                                        |
+| `Cleaning waiting time testing [s]`    | Dwell time for cleaning solution (testing chamber)    | `float`             | 60                                                                                  | 10–120 s typical                           |
+| `Cleaning waiting time deposition [s]` | Dwell time for cleaning solution (deposition chamber) | `float`             | 60                                                                                  | 10–120 s typical                           |
+| `Cleaning cycles testing chamber`      | Number of cleaning cycles (testing chamber)           | `int`               | 2                                                                                   | 1–5                                        |
+| `Cleaning cycles deposition chamber`   | Number of cleaning cycles (deposition chamber)        | `int`               | 2                                                                                   | 1–5                                        |
+| `Deposition batch`                     | Stock electrolyte used for deposition                 | `str`               | `"Electrolyte 1 NiSO4 0.4 M with 0.4 M NaCitrate + 0.3 M NaCl Fabricated 21.11.24"` | Record preparation details                 |
+
 
        
 

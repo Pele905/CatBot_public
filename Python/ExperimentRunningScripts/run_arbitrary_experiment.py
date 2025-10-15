@@ -4,8 +4,6 @@ import threading
 # Add the parent directory to the system path as this is running in a subdirectory
 parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
-analysis_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', "Live_data_analysis"))
-sys.path.append(analysis_path)
 from Catbot_control_master import CatBot
 from experimental_protocols import coated_wire_testing_protocol_1
 from experiment_class import Experiment

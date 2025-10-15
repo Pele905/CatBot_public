@@ -1,6 +1,28 @@
+# Core system and scientific libraries
 numpy==1.26.4
-scipy==1.13.1
-torch==2.5.1
-pandas==2.2.2
 matplotlib==3.9.0
+scipy==1.13.1
+pandas==2.2.2
+python-dateutil==2.9.0.post0
+pytz==2024.1
+six==1.16.0
+torch==2.5.1
+
+# Serial communication and threading
 pyserial==3.5
+
+# Qt GUI and serial handling (PySide2 stack)
+PySide2==5.15.2.1
+shiboken2==5.15.2.1
+shiboken2-generator @ https://download.qt.io/official_releases/QtForPython/shiboken2-generator/shiboken2_generator-5.15.2.1-5.15.2-cp35.cp36.cp37.cp38.cp39.cp310-none-win_amd64.whl#sha256=b8f2f46cf45ec6d7d4d700bb6136d006a4b98a488ff517b7f635692fe5c30ffb
+
+# Squidstat potentiostat communication
+SquidstatPyLibrary @ file:///C:/Users/Catbot-adm/Desktop/SquidstatPyLibrary-1.8.0.5-py3-none-win_amd64.whl#sha256=91dd7167141cb8af62739685a38b8d3900680ed03fb3b6b072e5cb8a122e452a
+
+# Utility and logging dependencies
+psutil==7.0.0
+tqdm==4.67.1
+requests==2.32.3
+colorama==0.4.6
+packaging==24.0
+
